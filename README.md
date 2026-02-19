@@ -114,4 +114,5 @@ Each notebook contains detailed background and instructions.
 
 ## Citation
 
-If you use this toolbox in your research, please cite the accompanying paper: P. Pathmanathan et al., "SimEval: a toolbox of software and executable notebooks for credibility assessment of medical device modeling and simulation" (to be submitted)
+If you use this toolbox in your research, please cite the accompanying paper: 
+ * P. Pathmanathan, K. Aycock, B. Craven, "SimEval: a toolbox of software and interactive notebooks for credibility assessment of medical device modeling and simulation", under submission.
