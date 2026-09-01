@@ -4,12 +4,41 @@
 ## Introduction
 
 
-The SimEval Toolbox is a repository of Python code and interactive Jupyter notebooks for performing tasks related to **credibility assessment of computational modeling and simulation**. This initial release (v1.0) is focused on code and calculation verification. Code and calculation verification of both traditional PDE-based solvers, such as the finite element method, and of newer methods such as physics-informed neural networks (PINNs), are covered in this release. 
+The SimEval Toolbox is a repository of Python code and interactive Jupyter notebooks for performing tasks 
+related to **credibility assessment of computational modeling and simulation**. 
+This initial release (v1.0) is focused on **code and calculation verification**. 
+Code and calculation verification of both traditional partial differential equation (PDE)-based solvers, such as the finite element method, and of newer methods such as physics-informed neural networks (PINNs), are covered in this release. 
 
 The toolbox contains the following components:
-  1. **Code verification of traditional PDE solvers**: a notebook and supporting Python code demonstrating an end-to-end example of code verification
-  2. **Calculation verification of traditional PDE solvers**: a Python module for computing calculation verification metrics (observed order of convergence, Richardson extrapolated value, grid convergence index), with an accompanying  notebook demonstrating usage
-  3. **PINN code and calculation verification**: notebook and supporting Python code demonstrating the process and challenges of performing code and calculation verification for PINN solvers
+  1. Code verification of traditional PDE solvers
+  2. Calculation verification of traditional PDE solvers
+  3. PINN code and calculation verification
+
+
+### Component 1: Code verification of traditional PDE solvers
+
+This is a notebook and supporting Python code demonstrating an end-to-end example of code verification. It provides the following:
+ * Introduction to the method of manufactured solutions
+ * List of test problems with exact solution available in the literature, across modeling fields
+ * Discussion of practical considerations including error norm choice
+ * End-to-end MMS example
+ * Reusable code (in notebook) 
+ 
+### Component 3: Calculation verification of traditional PDE solvers
+
+This is a Python module named `calcverif` for computing calculation verification metrics, with an accompanying notebook. 
+  * Module typical inputs: results from a mesh discretization study, i.e., mesh sizes, quantity of interest values, theoretical order of convergence (optional)
+  * Module outputs: observed order of convergence, Richardson extrapolated value, grid convergence index (GCI), plots.
+   
+The accompanying Jupyter notebook demonstrates how the module is used.
+  
+### Component 3: Code verification of traditional PDE solvers
+
+This is a notebook and supporting Python code demonstrating the process and challenges of performing code and calculation verification for PINN solvers. It provides the following:
+ * PINN solvers (1D solver and 2D monodomain) for experimentation
+ * End-to-end PINN example of using the method of manufactured solutions to investigate convergence (numerical convergence to true solution of equations - not just training convergence)
+ * Discussion of PINN-specific verification considerations and observations based on the convergence analysis results
+ * Reusable code (in notebook and `src` folder)  
 
 
 ## Repository Structure
@@ -94,7 +123,6 @@ python test_calcverif.py
 python test_PINN_solve.py
 python test_PINN_error_convergence.py
 ````
-Note: despite use of seeds in the two PINN tests, the results of these tests are not fully deterministic and therefore not fully repeatable. The final trained solution can differ across sessions, which means these tests can occasionally fail. If this occurs try re-starting and re-running, to confirm the failure was random.
 
 
 ## Using the toolbox

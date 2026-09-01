@@ -7517,7 +7517,8 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="PDE-Code-Verification">PDE Code Verification<a class="anchor-link" href="#PDE-Code-Verification">¶</a></h1><p>Partial differential equations (PDEs) arise when solving governing differential equations in space and time and/or in multiple spatial dimensions. PDEs are more challenging to solve than ordinary differential equations (ODEs), in terms of both defining an appropriate numerical method and computational cost.</p>
+<h1 id="PDE-Code-Verification">PDE Code Verification<a class="anchor-link" href="#PDE-Code-Verification">¶</a></h1><p><strong>This notebook is part of the FDA SimEval toolbox, <a href="https://github.com/OSEL-DAM/SimEval">https://github.com/OSEL-DAM/SimEval</a></strong></p>
+<p>Partial differential equations (PDEs) arise when solving governing differential equations in space and time and/or in multiple spatial dimensions. PDEs are more challenging to solve than ordinary differential equations (ODEs), in terms of both defining an appropriate numerical method and computational cost.</p>
 <p>Code verification is defined in <a href="#ref-FDA2023">FDA, 2023</a> as the <em>“process of identifying errors in the numerical algorithms of a computer code"</em>. ASME V&amp;V40 (<a href="#ref-VV40">ASME, 2018</a>) defines two credibility factors for code verification, software quality assurance (SQA) and numerical code verification (NCV). SQA involves ensuring <em>"that the software is functioning correctly and produces repeatable results on a specified computer resource in a specified software environment and is applicable to any computational model"</em>, and is applicable to any software product. NCV on the other hand only applies to differential equations-based computational models, and involves confirming that the numerical scheme for solving the differential equations has been implemented correctly. For example, by demonstrating the numerical solution converges to the true solution at the expected rates of convergence. For detailed introduction to NCV, see <a href="#ref-FDA2023">FDA, 2023</a>.</p>
 <p>This notebook focuses on <strong>the process of performing NCV for partial differential equation (PDE) based computational models</strong>. The specific goals are:</p>
 <ol>
@@ -7642,7 +7643,7 @@ NCV of a code solving Laplace's equation can be be performed by computing the so
 </tr>
 </tbody>
 </table>
-<h2 id="2.3.-Choosing-an-appropriate-error-norm">2.3. Choosing an appropriate error norm<a class="anchor-link" href="#2.3.-Choosing-an-appropriate-error-norm">¶</a></h2><p>Since the goal of the workflow is to confirm the error converges to zero at the expected rate of convergence, the norm used to measure this error should based on error estimation theory for the numerical scheme used.</p>
+<h2 id="2.3.-Choosing-an-appropriate-error-norm">2.3. Choosing an appropriate error norm<a class="anchor-link" href="#2.3.-Choosing-an-appropriate-error-norm">¶</a></h2><p>Since the goal of the workflow is to confirm the error converges to zero at the expected rate of convergence, the norm used to measure this error is selected based on error estimation theory for the numerical scheme used.</p>
 <h3 id="2.3.1-Finite-element-method">2.3.1 Finite element method<a class="anchor-link" href="#2.3.1-Finite-element-method">¶</a></h3><p>Suppose the finite element method is used to solve the general elliptic problem defined above in Section 1.2, resulting in a numerical solution $u_h(x)$, a piecewise polynomial approximation to the true solution $u_{\textrm{true}}$ that is a polynomial of order $p$ in each finite element (e.g., $p=1$ corresponding to  linear elements), and where $h$ is a measure of mesh resolution (e.g., average edge length). Theoretical error convergence rates use the <strong>square integral $L_2$ and Sobolev $H^1$ norms</strong>, defined by:
 \begin{align}
 \| u \|_{L_2}^2 &amp;= \int_{\Omega}u^2\,\mathrm{d}V  \\ %\intgl{\Omega}{u^2}{V} 
@@ -7659,7 +7660,7 @@ for some $c_1&gt;0$, $c_2&gt;0$, and for sufficiently small $h$. For example, fo
 \begin{equation}
 e_{h,L_2} = h^{d/2}\|\mathbf{u}_h-\mathbf{u}_{\textrm{true}}\|_2 = h^{d/2}\left(\sum_{i} (u_{h,i} - u_{\textrm{true}}(\mathbf{x}_i))^2 \right)^{1/2}
 \end{equation}
-where $\|.\|_2$ is the standard vector $l_2$ norm, and $\mathbf{u}_h$ and $\mathbf{u}_\textrm{true}$ are vectors of nodal values of $u_h$ and $u_{\textrm{true}}$. $d$ is the spatial dimension and the scaling $h^{d/2}$ ensures $\mathcal{O(1)}$ functions have $\mathcal{O(1)}$ norms as $h\rightarrow 0$ (i.e., counteracts the sum over increasingly many values as $h$ decreases). This error metric is easy to compute, and approximates the $L_2$ error. However, it is important to note that rate of convergence rate of $e_{h,L_2}$ may not match the rate of convergence rate of $e_{L_2}$. In some cases, the theoretical order of convergence of the $e_{h,L_2}$ error may not be known. In others, such as some 1D problems, it may have been shown that the convergence of the $e_{h,L_2}$ error is faster than the convergence of the $e_{L_2}$ error (essentially, the solution converges faster at the nodes than inside the elements; so-called super-convergence (<a href="#ref-Schatz1996">Schatz et al., 1996</a>). For example, in the end-to-end worked example below, convergence in the discrete $L_2$ error will be $\mathcal{O(h^{4})}$ despite only using linear elements. Therefore, if the discrete $L_2$, or other discrete norm, is used as a surrogate to the integral $L_2$ norm, care is needed regarding claims of matching the theoretical order of convergence.</p>
+where $\|.\|_2$ is the standard vector $l_2$ norm, and $\mathbf{u}_h$ and $\mathbf{u}_\textrm{true}$ are vectors of nodal values of $u_h$ and $u_{\textrm{true}}$. $d$ is the spatial dimension and the scaling $h^{d/2}$ ensures $\mathcal{O(1)}$ functions have $\mathcal{O(1)}$ norms as $h\rightarrow 0$ (i.e., counteracts the sum over increasingly many values as $h$ decreases). This error metric is easy to compute, and approximates the $L_2$ error. However, it is important to note that rate of convergence rate of $e_{h,L_2}$ may not match the rate of convergence rate of $e_{L_2}$. In some cases, the theoretical order of convergence of the $e_{h,L_2}$ error may not be known. In others, such as some 1D problems, it may have been shown that the convergence of the $e_{h,L_2}$ error is faster than the convergence of the $e_{L_2}$ error (essentially, the solution converges faster at the nodes than inside the elements; so-called super-convergence (<a href="#ref-Schatz1996">Schatz et al., 1996</a>)). For example, in the end-to-end worked example below, convergence in the discrete $L_2$ error will be $\mathcal{O(h^{4})}$ despite only using linear elements. Therefore, if the discrete $L_2$, or other discrete norm, is used as a surrogate to the integral $L_2$ norm, care is needed regarding claims of matching the theoretical order of convergence.</p>
 <h3 id="2.3.2-Error-norms-for-other-methods">2.3.2 Error norms for other methods<a class="anchor-link" href="#2.3.2-Error-norms-for-other-methods">¶</a></h3><p>Other commonly used methods of have different appropriate error norms.</p>
 <ul>
 <li>For the finite difference method, the solution is defined at a set of grid-points, and appropriate norms include the discrete $L_2$ norm as defined above or discrete $L_\infty$ norm $e_{h,L_\infty} = \textrm{max}\left(|u_{h,i} - u_{\textrm{true}}(\mathbf{x}_i)|\right)$. Typically, the error in these norms will be $\mathcal{O(h^p)}$ for some $p$, where $h$ is the spatial stepsize. For example, the central differences scheme for solving second order ODEs typically leads to $\mathcal{O(h^2)}$ convergence in the discrete $L_2$ or $L_\infty$ norms.</li>
@@ -7676,7 +7677,7 @@ where $\|.\|_2$ is the standard vector $l_2$ norm, and $\mathbf{u}_h$ and $\math
 </ul>
 <h1 id="3.-End-to-end-example">3. End-to-end example<a class="anchor-link" href="#3.-End-to-end-example">¶</a></h1><p>We will illustrate the overall process and discuss some of the nuances using a very simple 1D problem, $\frac{\mathrm{d}^2 u}{\mathrm{d}x^2} = f(x)$ on $[0,1]$ with boundary conditions $u=0$ on $x=0$ and $\frac{\mathrm{d} u}{\mathrm{d}x}=g$ on $x=1$. We use a simple 1D problem instead of a higher dimensional problem or a more interesting set of governing equations because it allows us to demonstrate all the points that we want to make about the MMS, while also being fast enough to solve numerically that all the below convergence analyses run near instantaneously on a laptop.</p>
 <p><strong>Steps 1-3 - domain; manufactured solution; body force and boundary conditions:</strong> Using the specified domain [0,1], we choose the solution $u(x) = \sin(2\pi x)$ which corresponds to $f(x) = -4 \pi^2 sin(2\pi x)$ and $g = 2\pi$.</p>
-<p><strong>Steps 4 - solve problem</strong>: the function <code>solve_simple_prob</code> solves this problem, using the finite element method and linear elements. The finite element solver was implemented from scratch so that the impact of an intentional error can be investigated. The interface is <code>x, u = solve_simple_prob(force_term, boundary_condition, h, h)</code> where <code>force_term</code> is a function, <code>boundary_condition</code> is a scalar, and <code>h</code> is the spatial stepsize. Note that the interface allows any function of $x$ for the force term and any constant for the Neumann boundary condition. If the interface only allowed, say, a constant $f$ or zero $g$, the code would need intrusive editing to solve this MMS problem. The following code loads this function from the <code>src</code> folder. We also import two functions which compute integral-based norms (<code>error_in_L2_norm</code>, <code>error_in_H1_norm</code>).</p>
+<p><strong>Steps 4 - solve problem</strong>: the function <code>solve_simple_prob</code> solves this problem, using the finite element method and linear elements. The finite element solver was implemented from scratch so that the impact of an intentional error can be investigated. The interface is <code>x, u = solve_simple_prob(force_term, boundary_condition, h)</code> where <code>force_term</code> is a function, <code>boundary_condition</code> is a scalar, and <code>h</code> is the spatial stepsize. Note that the interface allows any function of $x$ for the force term and any constant for the Neumann boundary condition. If the interface only allowed, say, a constant $f$ or zero $g$, the code would need intrusive editing to solve this MMS problem. The following code loads this function from the toolbox <code>src</code> folder. We also import two functions which compute integral-based norms (<code>error_in_L2_norm</code>, <code>error_in_H1_norm</code>).</p>
 </div>
 </div>
 </div>
@@ -7716,7 +7717,7 @@ where $\|.\|_2$ is the standard vector $l_2$ norm, and $\mathbf{u}_h$ and $\math
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [25]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
@@ -7787,7 +7788,7 @@ $\newcommand{\bintgl}[4]{\int_{#1}^{#2} #3 \, \textrm{d}#4}$
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [26]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">error_L2</span> <span class="o">=</span> <span class="n">error_in_L2_norm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">u</span><span class="p">,</span><span class="n">exact_soln</span><span class="p">)</span>
@@ -7830,7 +7831,7 @@ L2: 0.0009301345214251716, H1: 0.16113730330754172, Discrete L2: 2.0060947024265
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [27]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># initialize empty arrays</span>
@@ -7959,7 +7960,7 @@ The below code computes and plots this.</p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [28]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">calculate_OOC</span><span class="p">(</span><span class="n">coarse_res</span><span class="p">,</span> <span class="n">fine_res</span><span class="p">,</span> <span class="n">refinement_ratio</span><span class="p">):</span>
@@ -7991,9 +7992,9 @@ The below code computes and plots this.</p>
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[28]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[5]:</div>
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain" tabindex="0">
-<pre>&lt;matplotlib.legend.Legend at 0x20cce11ae90&gt;</pre>
+<pre>&lt;matplotlib.legend.Legend at 0x1f6b60dbed0&gt;</pre>
 </div>
 </div>
 <div class="jp-OutputArea-child">
@@ -8021,7 +8022,7 @@ The below code computes and plots this.</p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [29]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">plot_convergence_and_ooc</span><span class="p">(</span><span class="n">hs</span><span class="p">,</span> <span class="n">errors</span><span class="p">,</span> <span class="n">error_norm_name</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">theoretical</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
@@ -8074,7 +8075,7 @@ The below code computes and plots this.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>We see that the error in the $H^1$ norm is $O(h)$ as expected. The error in the discrete $L_2$ norm is actually $O(h^4)$ (at least until the high resolution mesh, when the error is very small ($\sim 10^{-11})$ and another source of error begins to dominate); much faster than in the $L_2$ norm. This is the superapproximation phenomena mentioned above. These results demonstrate how care is needed regarding claims of matching the theoretical order of convergence if a discrete norm is used as a surrogate to the norm the theory is based on. That is, if the observed convergence rate in the discrete $L_2$ norm had been $O(h^2)$, it would not necessarily follow that convergence in $L_2$ norm is also $O(h^2)$.</p>
+<p>We see that the error in the $H^1$ norm is $O(h)$ as expected. The error in the discrete $L_2$ norm is actually $O(h^4)$ (at least until the high resolution mesh, when the error is very small ($\sim 10^{-11})$ and another source of error begins to dominate); much faster than in the $L_2$ norm. This is the superapproximation phenomenon mentioned above. These results demonstrate how care is needed regarding claims of matching the theoretical order of convergence if a discrete norm is used as a surrogate to the norm the theory is based on. That is, if the observed convergence rate in the discrete $L_2$ norm had been $O(h^2)$, this could have implied an error in the solver - it would not necessarily follow that convergence in $L_2$ norm is also $O(h^2)$.</p>
 <p>In the final part of this example, we demonstrate how the results change under two changes:</p>
 <ol>
 <li>Formulating the MMS problem incorrectly: a slightly incorrect boundary condition is passed in: $g= - 6.2831$, i.e., $2\pi$ rounded to four decimal places instead of $2\pi$ to machine precision.</li>
@@ -8088,7 +8089,7 @@ The below code computes and plots this.</p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [30]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># set up arrays for storing the errors</span>
@@ -8159,7 +8160,7 @@ The below code computes and plots this.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>For the incorrectly formulated MMS problem, initially the error converges at the expected rate but then stops converging, demonstrating the sensitivity of the MMS to small errors.</p>
-<p>For the intentional error in the boundary condition implementation, the error actually converges at the theoretical rate in the $L_2$ and $H_1$ norms, but the convergence rate in the discrete $L_2$ norm drops from $\mathcal{O}(h^4)$ to $\mathcal{O}(h^2)$.</p>
+<p>For the intentional error in the boundary condition implementation, the error actually converges at the theoretical rate in the $L_2$ and $H^1$ norms, but the convergence rate in the discrete $L_2$ norm drops from $\mathcal{O}(h^4)$ to $\mathcal{O}(h^2)$.</p>
 </div>
 </div>
 </div>

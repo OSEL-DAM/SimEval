@@ -24,8 +24,8 @@ src_path = os.path.abspath(os.path.join(base_dir, '..', 'src'))
 # Insert src_path at the beginning of sys.path so that modules in 'src' can be imported.
 sys.path.insert(0, src_path)
 
-from calcverif import CalculationVerificationTool, ConvergenceType
 
+from calcverif import CalculationVerificationTool, ConvergenceType
 
 
 class TestCalcVerif(unittest.TestCase):
@@ -263,6 +263,51 @@ class TestCalcVerif(unittest.TestCase):
         self.assertAlmostEqual(calcverif_tool.last_h_values[2], 0.4, 12)
         self.assertAlmostEqual(calcverif_tool.last_qoi_values[2], 1.708, 12)
 
+
+    def test_relative_GCI(self):
+        """
+        Test class returns relative GCI when requested
+        """
+        print("\n==========================\nEntering " + inspect.stack()[0][3] + "\n==========================")
+ 
+        h_values = [0.1, 0.2, 0.4]
+        qoi_values = [2.0, 3.0, 5.0] # qoi = 1 + 10h
+
+        calcverif_tool = CalculationVerificationTool(use_absolute_GCI = False)       
+        ooc, re, gci = calcverif_tool.analyze(h_values,qoi_values,formal_order_conv = 1.0)
+        correct_gci = 1.25*(3.0-2.0)/(2*(2**1.0-1))
+        self.assertAlmostEqual(gci, correct_gci, 12)
+
+
+
+    def test_with_negative_QOI(self):
+        """
+        Test class returns relative GCI when requested
+        """
+        print("\n==========================\nEntering " + inspect.stack()[0][3] + "\n==========================")
+
+        h_values = [0.1, 0.2, 0.4]
+        qoi_values = [-2.0, -3.0, -5.0] # qoi = -1 - 10h
+        
+        
+        calcverif_tool = CalculationVerificationTool()       
+        ooc, re, gci = calcverif_tool.analyze(h_values,qoi_values,formal_order_conv = 1.0)
+        calcverif_tool.plot()
+
+        self.assertAlmostEqual(ooc, 1.0, 12)
+        self.assertAlmostEqual(re, -1.0, 12)
+        correct_gci = 1.25*(3.0-2.0)/((2**1.0-1))
+        self.assertAlmostEqual(gci, correct_gci, 12)
+        
+                
+        calcverif_tool2 = CalculationVerificationTool(use_absolute_GCI = False)       
+        ooc, re, gci = calcverif_tool2.analyze(h_values,qoi_values,formal_order_conv = 1.0)
+        calcverif_tool2.plot()
+
+        self.assertAlmostEqual(ooc, 1.0, 12)
+        self.assertAlmostEqual(re, -1.0, 12)
+        correct_gci = 1.25*(3.0-2.0)/(2*(2**1.0-1))
+        self.assertAlmostEqual(gci, correct_gci, 12)
 
 
     def test_analyze_by_n_elems(self):

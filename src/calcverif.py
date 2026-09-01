@@ -31,9 +31,13 @@ class CalculationVerificationTool():
     """
     Class to perform various calculations and analyses related to convergence verification
     """
-    def __init__(self, suppress_output = False):
+    def __init__(self, suppress_output = False, use_absolute_GCI = True):
         """
         Initializes an instance of CalculationVerificationTool.
+        Parameters:
+            suppress_output (bool): whether to suppress text output during calculation. Defaults to False
+            use_absolute_GCI (bool): whether to compute absolute GCI. 
+            Defaults to True. If False relative GCI is returned as a dimensionless fraction (not percentage)
         """
         # Intialize attributes
         self._reset()
@@ -42,6 +46,7 @@ class CalculationVerificationTool():
         self.method = None # outside of _reset as want this to persist after being set. 
 
         self.suppress_output = suppress_output
+        self.use_absolute_GCI = use_absolute_GCI
 
 
     def _print(self, message):
@@ -163,16 +168,22 @@ class CalculationVerificationTool():
                 return "cannot_run"
             else:
                 self._print("Method: standard method, as N=3 and monotonically converging")
+                gci_string = "Absolute GCI not relative GCI" if self.use_absolute_GCI else "Relative GCI not absolute GCI"
+                self._print(gci_string)                
                 return 'N3_mono'
         else: # N>3
             if conv_type in [ConvergenceType.MONOTONIC_DIVERGENCE,ConvergenceType.OSCILLATORY_DIVERGENCE]:
                 self._print("QOI on finest three meshes is diverging. Add QOI values for finer meshes")
                 return "cannot_run"
             elif conv_type == ConvergenceType.OSCILLATORY_CONVERGENCE:
-                self._print("Method: least squares, as N>3 and QOI on finest three meshes is converging but oscillatory")                
+                self._print("Method: least squares, as N>3 and QOI on finest three meshes is converging but oscillatory")
+                gci_string = "Absolute GCI not relative GCI" if self.use_absolute_GCI else "Relative GCI not absolute GCI"
+                self._print(gci_string)                
                 return "least_squares"
             else: 
-                self._print("Method: analyzing each triplet, as N>3 and QOI on finest three meshes is monotonically converging")                
+                self._print("Method: analyzing each triplet, as N>3 and QOI on finest\nthree meshes is monotonically converging")                
+                gci_string = "Absolute GCIs not relative GCIs" if self.use_absolute_GCI else "Relative GCIs not absolute GCIs"
+                self._print(gci_string)    
                 return "largeN_mono"
     
     
@@ -227,19 +238,27 @@ class CalculationVerificationTool():
             formal_order_conv (float, optional): Formal order of convergence, if known.
             
         Returns:
-            float: Calculated Grid Convergence Index (GCI) - same units as QOI.
+            float: Calculated Grid Convergence Index (GCI - same units as QOI if default absolute GCI option used - see constructor)
         """        
         if formal_order_conv == None:
             Fs = 3
         else:
             assert(formal_order_conv>0)
             # safety factor based on how close ooc is to the formal order
-            if np.abs(ooc - formal_order_conv) < 0.1*formal_order_conv:
+            if np.abs(ooc - formal_order_conv) <= 0.1*formal_order_conv:
                 Fs = 1.25
             else:
                 Fs = 3
         
-        return (Fs/(r21**constrained_ooc-1))*np.abs(q2-q1)    
+        gci = (Fs/(r21**constrained_ooc-1))*np.abs(q2-q1)
+        
+        if not self.use_absolute_GCI:
+            if q1 == 0:
+                raise ValueError("Requested relative GCI but QOI on finest mesh is zero")   
+            gci = gci / np.abs(q1)
+            
+        return gci
+    
 
 
     def analyze(self,h_values,qoi_values,formal_order_conv = None):
@@ -260,7 +279,7 @@ class CalculationVerificationTool():
             tuple: (ooc, re, GCI)
                 - ooc: Observed Order of Convergence.
                 - re: Richardson Extrapolated value.
-                - GCI: Grid Convergence Index (same units as QOI).
+                - GCI: Grid Convergence Index (same units as QOI if default absolute GCI option used - see constructor).
             If errors occur (divergence, or oscillatory convergnece for the case of three grids), returns (None, None, None).
         """
         self._reset()
@@ -301,7 +320,7 @@ class CalculationVerificationTool():
             tuple: (ooc, re, GCI)
                 - ooc (float): Observed Order of Convergence.
                 - re (float): Richardson Extrapolated value.
-                - GCI (float): Grid Convergence Index (same units as QOI).
+                - GCI (float): Grid Convergence Index (same units as QOI if default absolute GCI option used - see constructor).
             If errors occur (divergence, or oscillatory convergnece for the case of three grids), returns (None, None, None).
         """
         self._reset()
@@ -345,7 +364,7 @@ class CalculationVerificationTool():
             tuple: (ooc, re, GCI, error)
                 - ooc: Observed Order of Convergence.
                 - re: Richardson Extrapolated value.
-                - GCI: Grid Convergence Index (same units as QOI)
+                - GCI: Grid Convergence Index (same units as QOI if default absolute GCI option used - see constructor)
                 - error: A string indicating an error condition ('divergence' or 'oscillatory') or None.
         """  
         if not is_intermediate_triplet:
@@ -511,7 +530,7 @@ class CalculationVerificationTool():
             tuple: (ooc, re, GCI)
                 - ooc: Fitted order of convergence (p).
                 - re: Extrapolated QOI value at h=0.
-                - GCI: Grid Convergence Index from the first three meshes (same units as QOI).
+                - GCI: Grid Convergence Index from the first three meshes (same units as QOI if default absolute GCI option used - see constructor).
         """    
         self._reset()
 
@@ -548,7 +567,7 @@ class CalculationVerificationTool():
         constrained_ooc = self._compute_constrained_OOC(ooc, formal_order_conv, suppress_message=False, will_be_used_for_RE=False)
 
         gci = self._calculate_GCI(h_values[1]/h_values[0], qoi_values[0], qoi_values[1], ooc, constrained_ooc, formal_order_conv)
-        
+
         self._save_results(h_values, qoi_values, ooc, re, gci)
 
         return ooc, re, gci
@@ -562,15 +581,6 @@ class CalculationVerificationTool():
         
         This function creates a semilogarithmic plot of QOI vs. mesh size (h), adds horizontal lines
         for the extrapolated value and GCI bounds (if available), and overlays a least squares fit curve if provided.
-        
-        Parameters:
-            h_values (list or array-like): Mesh sizes.
-            qoi_values (list or array-like): QOI values corresponding to the mesh sizes.
-            ooc (float): Observed Order of Convergence.
-            re (float): Richardson Extrapolated value.
-            GCI (float): Grid Convergence Index.
-            ax (matplotlib.axes.Axes, optional): Matplotlib axis object to plot on.
-            plot_axis_labels (tuple, optional): Axis labels as (xlabel, ylabel).
         """
         # Create a new figure and axis if none is providedif ax is None:
 
@@ -589,8 +599,13 @@ class CalculationVerificationTool():
         ax.axhline(y=self.last_re, color='r', linestyle='-', label=f'Extrapolated value: {self.last_re:.4f}')
         ax.set_title(f'Convergence Plot (Observed convergence rate: {self.last_ooc:.2f})')
     
-        ax.axhline(y=self.last_qoi_values[0]+self.last_gci, color='r', linestyle='--', label="Finest mesh QOI +/- GCI")
-        ax.axhline(y=self.last_qoi_values[0]-self.last_gci, color='r', linestyle='--')
+        if self.use_absolute_GCI:    
+            ax.axhline(y=self.last_qoi_values[0]+self.last_gci, color='r', linestyle='--', label="Finest mesh QOI +/- GCI")
+            ax.axhline(y=self.last_qoi_values[0]-self.last_gci, color='r', linestyle='--')
+        else:
+            ax.axhline(y=self.last_qoi_values[0]*(1+self.last_gci), color='r', linestyle='--', label="Finest mesh QOI * (1 +/- relativeGCI)")
+            ax.axhline(y=self.last_qoi_values[0]*(1-self.last_gci), color='r', linestyle='--')
+            
 
         assert(self.ls_fit_curve == None or self.intermediate_triplet_metrics == None)
         

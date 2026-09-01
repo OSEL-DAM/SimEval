@@ -1,3 +1,16 @@
+"""
+PINN solver for a one-dimensional elliptic boundary-value problem.
+
+This module provides:
+ - `solve_1d_elliptic_PINN` (function): a DeepXDE-based PINN solver for a second-order
+    elliptic equation on the unit interval.
+
+Also defined is
+ - `InMemoryBestModel` (class), a callback for retaining the model weights associated
+    with the lowest test PDE loss without writing intermediate models to disk. Used by the PINN solver.
+"""
+
+
 import os
 os.environ["DDE_BACKEND"] = "tensorflow.compat.v1"
 
@@ -6,13 +19,13 @@ import tensorflow as tf   # See project README
 import deepxde as dde     # See project README 
 
 
-""" 
-   Callback for saving the best soln. DeepXDE provides a callback for saving the best performing model to file, which can be restored
-   at the end of the solve; however repeatedly writing to file is too slow. This callback was save the best performing
-   model to memory. When an instance of this class is passed into model.train() as a callback, the solver will store the best performing
-   weights in memory. The metric used is *test loss* (PDE component), not the train loss.  
-"""
 class InMemoryBestModel(dde.callbacks.Callback):
+    """ 
+       Callback for saving the best soln. DeepXDE provides a callback for saving the best performing model to file, which can be restored
+       at the end of the solve; however repeatedly writing to file is too slow. This callback was save the best performing
+       model to memory. When an instance of this class is passed into model.train() as a callback, the solver will store the best performing
+       weights in memory. The metric used is *test loss* (PDE component), not the train loss.  
+    """
     def __init__(self):
         self.best_weights = None
         self.best_value = np.inf
@@ -46,7 +59,7 @@ class InMemoryBestModel(dde.callbacks.Callback):
                 print(f"Could not get trainable_variables: {e}")
         """ 
                
-    def on_epoch_end(self):
+    def on_epoch_end(self):  # note, loss_test is updated every display_every epochs (1000 by default)
         try:
             value = self.model.train_state.loss_test[0]
 
@@ -73,16 +86,17 @@ class InMemoryBestModel(dde.callbacks.Callback):
 
             
             
-def PINN_solve(rhs_func,                  
-               boundary_condition_value, 
-               num_output_points = 101,  
-               num_colloc = 20,
-               num_layers = 2,
-               neurons_per_layer = 20, 
-               num_epochs = 10000,
-               train_distribution = "pseudo",
-               use_best_test_loss = True,
-               learning_rate_decay = True):
+def solve_1d_elliptic_PINN(rhs_func,                  
+                           boundary_condition_value, 
+                           num_output_points = 101,  
+                           num_colloc = 20,
+                           num_layers = 2,
+                           neurons_per_layer = 20, 
+                           num_epochs = 10000,
+                           train_distribution = "pseudo",
+                           use_best_test_loss = True,
+                           learning_rate_decay = True,
+                           seed = None):
     """
     Solve u_xx = f(x) on [0,1], u(0)=0, u_x(1)=g, using a physics-informed neural network (PINN), using
     the DeepXDE library.
@@ -105,14 +119,18 @@ def PINN_solve(rhs_func,
         Number of epochs (iterations), default 10000
     train_distribution : string, optional
         How the collocation points will be distributed. Will be passed to dde.data.PDE(). Options
-        include "uniform" or "pseudo" (default, randomly re-sampled each epoch)
+        include "uniform" or "pseudo" (default, randomly sampled)
     use_best_test_loss : boolean, optional
         Saves and restores the best performing weights, i.e., the weights for the iteration that provided 
         the lowest test loss. Defaults to True. 
     learning_rate_decay : boolean, optional
-        If True, applies a learning rate decay schedule during training. The learning rate is halved after 
-        a fixed number of epochs (every 1000), which can improve stability and reduce
+        If True, applies a learning rate decay schedule during training, which can improve stability and reduce
         optimizer variance at later stages. Defaults to True.
+    seed : int, default None
+        If set, will be used as seed for randon number generation. Set to enforce reproducibility (results should be identical for fixed hardware). 
+        See comments in code for how this is implemented - have to do more than just deepxde.config.set_random_seed(seed)  
+  
+
 
     Returns
     -------
@@ -129,6 +147,21 @@ def PINN_solve(rhs_func,
           - 'x_dense' - dense set of 10000 x values across the domain
           - 'resid_at_x_dense' - PDE residual at those x values (so can see if PDE residual is high between collocation points)
     """
+
+    # The following is needed to enforce reproducibility. First, we call deepxde.config.set_random_seed() which will pass the seed to
+    # the relevant functions for tensorflow, numpy, random. 
+    # However, there is known DeepXDE initializer-seeding bug issue (May 2026) where Keras initializers are created upon initial import 
+    # and therefore before the user seed is set. This leads to the user seed being neglected in weight initialization if the following line is called below 
+    #   net = dde.nn.FNN(layer_size, activation, "Glorot uniform")
+    # Different sessions would end up using different initial weights and therefore different results. 
+    # Using the following variant ensures reproducibility across sessions.
+    #   glorot_initializer = tf.keras.initializers.glorot_uniform(seed=seed)
+    #   net = dde.nn.FNN(layer_size, activation, glorot_initializer)
+    # https://github.com/lululxvi/deepxde/issues/2086
+    # (Note: another fix to ensure reproducibility across sessions is to call "import random; random.seed(0)" before importing tensorflow but then user can't control the seed)
+    if seed is not None:
+        dde.config.set_random_seed(seed)  
+
 
     # define the PDE to be solved
     def pde(x, u):
@@ -154,33 +187,23 @@ def PINN_solve(rhs_func,
     # set up network
     layer_size = [1] + [neurons_per_layer] * num_layers + [1] # resolves to, e.g., [1, 20, 20, 1] if num_layers=2 and neurons_per_layer=20
     activation = "tanh"
-    initializer = "Glorot uniform"
-    net = dde.nn.FNN(layer_size, activation, initializer)
+
+    # See comments at top near dde.config.set_random_seed(seed)  
+    glorot_initializer = tf.keras.initializers.glorot_uniform(seed=seed)
+    net = dde.nn.FNN(layer_size, activation, glorot_initializer)
     
-        
     model = dde.Model(data, net)
     
-    # if learning_rate_decay is true, set up for learning rate halves every 1000 steps
+    # if learning_rate_decay is true, set up for learning rate to decrease
     if learning_rate_decay:        
-        # Exponential decay schedule
-        lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
-            initial_learning_rate=0.001,
-            decay_steps=1000,
-            decay_rate=0.5,
-            staircase=True,
-        )
-        
-        # Adam optimizer with LR schedule
-        optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)        
-        model.compile("adam", optimizer.learning_rate)
+        model.compile("adam", lr=0.001, decay=("inverse time", 1000, 0.5))
     else:
         model.compile("adam", lr=0.001)
 
-    
     # if use_best_test_loss is true, set up so weights are saved each time the test loss is minimized
     if use_best_test_loss:
         best_model_cb = InMemoryBestModel()
-        losshistory, train_state = model.train(iterations=num_epochs,callbacks=[best_model_cb])  # add e.g., display_every=500 to change how often the InMemoryBestModel CallBack runs
+        losshistory, train_state = model.train(iterations=num_epochs,callbacks=[best_model_cb])  # add e.g., display_every=500 to change how often the InMemoryBestModel CallBack saves the best loss
         # restore best perfomring model
         best_model_cb.restore_best_weights()
         final_loss_test = best_model_cb.best_value
