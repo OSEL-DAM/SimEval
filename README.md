@@ -33,7 +33,7 @@ The accompanying Jupyter notebook demonstrates how the module is used.
   
 ## Component 3: Code verification of PINNs
 
-This is a Jupyter notebook and supporting Python code demonstrating a PINN-specific code verification workflow. It includes the following:
+Physics-informed neural networks (PINNs) are artificial intelligence models that use neural networks to solve differential equations and can be used in computational models for medical devices. This component is a Jupyter notebook and supporting Python code demonstrating a PINN-specific code verification workflow. It includes the following:
  * End-to-end PINN MMS-based code verification example
  * Executable, flexible, PINN solvers (1D elliptic equation and 2D monodomain equation solvers) for experimentation
  * PINN numerical convergence analysis results examining the effects of network training choices and stochastic variability
@@ -76,7 +76,7 @@ There are two installation options depending on whether you want to run the PINN
 
 ### Option 1: Standard libraries only (no PINN dependencies)
 
-This is recommended if you do **not** want to run the PINN interactive notebook. It is sufficient for the other two notebooks and supporting Python code, i.e., components 1 and 2.  
+This is suggested if you do **not** want to run the PINN interactive notebook. It is sufficient for the other two notebooks and supporting Python code, i.e., components 1 and 2.  
 
 The following standard libraries are required
 ```
@@ -167,7 +167,7 @@ Each notebook contains an introduction to the component, executable code, and de
 ## Authors
 **Developers**: Pras Pathmanathan, Kenny Aycock, Brent Craven
 
-**Contact:** pras.pathmanathan@fda.hhs.gov
+**Contact:** pras.pathmanathan@fda.hhs.gov; RST_CDRH@fda.hhs.gov.
 
 
 ## Citation
