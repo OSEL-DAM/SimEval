@@ -7519,7 +7519,7 @@ a.anchor-link {
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h1 id="PDE-Code-Verification">PDE Code Verification<a class="anchor-link" href="#PDE-Code-Verification">¶</a></h1><p><strong>This notebook is part of the FDA SimEval toolbox, <a href="https://github.com/OSEL-DAM/SimEval">https://github.com/OSEL-DAM/SimEval</a></strong></p>
 <p>Partial differential equations (PDEs) arise when solving governing differential equations in space and time and/or in multiple spatial dimensions. PDEs are more challenging to solve than ordinary differential equations (ODEs), in terms of both defining an appropriate numerical method and computational cost.</p>
-<p>Code verification is defined in <a href="#ref-FDA2023">FDA, 2023</a> as the <em>“process of identifying errors in the numerical algorithms of a computer code"</em>. ASME V&amp;V40 (<a href="#ref-VV40">ASME, 2018</a>) defines two credibility factors for code verification, software quality assurance (SQA) and numerical code verification (NCV). SQA involves ensuring <em>"that the software is functioning correctly and produces repeatable results on a specified computer resource in a specified software environment and is applicable to any computational model"</em>, and is applicable to any software product. NCV on the other hand only applies to differential equations-based computational models, and involves confirming that the numerical scheme for solving the differential equations has been implemented correctly. For example, by demonstrating the numerical solution converges to the true solution at the expected rates of convergence. For detailed introduction to NCV, see <a href="#ref-FDA2023">FDA, 2023</a>.</p>
+<p>Code verification is defined in <a href="#ref-FDA2023"></a>FDA, 2023 as the <em>“process of identifying errors in the numerical algorithms of a computer code"</em>. ASME V&amp;V40 (<a href="#ref-VV40"></a>ASME, 2018) defines two credibility factors for code verification, software quality assurance (SQA) and numerical code verification (NCV). SQA involves ensuring <em>"that the software is functioning correctly and produces repeatable results on a specified computer resource in a specified software environment and is applicable to any computational model"</em>, and is applicable to any software product. NCV on the other hand only applies to differential equations-based computational models, and involves confirming that the numerical scheme for solving the differential equations has been implemented correctly. For example, by demonstrating the numerical solution converges to the true solution at the expected rates of convergence. For detailed introduction to NCV, see <a href="#ref-FDA2023"></a>FDA, 2023.</p>
 <p>This notebook focuses on <strong>the process of performing NCV for partial differential equation (PDE) based computational models</strong>. The specific goals are:</p>
 <ol>
 <li>Overview general approaches to NCV for PDE-based models, focusing in particular on the method of manufactured solutions (MMS)</li>
@@ -7530,7 +7530,7 @@ a.anchor-link {
 <h1 id="1.-Overview-of-NCV-methods">1. Overview of NCV methods<a class="anchor-link" href="#1.-Overview-of-NCV-methods">¶</a></h1><p>To demonstrate that numerical solutions converge to the true solution of the governing equations at the expected rates of convergence, an exact solution of the mathematical problem is needed. In some cases, known analytic solutions are available. If not, exact solutions can be constructed using the method of manufactured solutions. These two approaches are discussed below.</p>
 <h2 id="1.1.-Analytic-solutions">1.1. Analytic solutions<a class="anchor-link" href="#1.1.-Analytic-solutions">¶</a></h2><p>An analytic solution is an exact solution of the PDEs that has been obtained through direct mathematical analysis, typically for a specific choice of geometry, usually a simplified geometry such as a square, circle, cuboid or sphere, or one that is infinitely long in one or more of the dimensions, and perhaps also with simplying assumptions in terms of physics. For example, Fourier series based analytic solutions can be constructed for Laplace's equation using the separation of variables approach. Some other examples are provided in the Table below.</p>
 <p>However, for complex PDEs, especially nonlinear PDEs, analytic solutions may not be available, or if they are they may not exercise all terms in the governing equation. For example, a spatially linear analytic solution will not exercise spatial second derivative terms. The method of manufactured solutions, discussed next, provides an alternative method approach for generating exact solutions.</p>
-<h2 id="1.2.-Method-of-manufactured-solutions">1.2. Method of manufactured solutions<a class="anchor-link" href="#1.2.-Method-of-manufactured-solutions">¶</a></h2><p>The method of manufactured solutions (MMS) involves choosing a solution <em>a priori</em>, inserting it into the governing equations, and calculating the corresponding source terms (i.e., PDE right hand side terms; also referred to as force terms) and boundary conditions that give rise to the chosen solution. Then, the PDE is solved using those source and boundary conditions to see if numerical solution matches the pre-selected solution. See <a href="#ref-Oberkampf2025">Oberkampf &amp; Roy, 2025</a> for a detailed introduction. MMS is easiest illustrated using an example. Suppose Poisson's equation
+<h2 id="1.2.-Method-of-manufactured-solutions">1.2. Method of manufactured solutions<a class="anchor-link" href="#1.2.-Method-of-manufactured-solutions">¶</a></h2><p>The method of manufactured solutions (MMS) involves choosing a solution <em>a priori</em>, inserting it into the governing equations, and calculating the corresponding source terms (i.e., PDE right hand side terms; also referred to as force terms) and boundary conditions that give rise to the chosen solution. Then, the PDE is solved using those source and boundary conditions to see if numerical solution matches the pre-selected solution. See <a href="#ref-Oberkampf2025"></a>Oberkampf &amp; Roy, 2025 for a detailed introduction. MMS is easiest illustrated using an example. Suppose Poisson's equation
 \begin{equation}
 \nabla^2 u = f(\mathbf{x})
 \end{equation}
@@ -7551,16 +7551,16 @@ f(\mathbf{x}) &amp;= -14 \pi^2 \sin(\pi x)\sin(2\pi y)\sin(3\pi z) \\
 \end{cases}
 \end{align}
 NCV of a code solving Laplace's equation can be be performed by computing the solution on the unit cube using the above source terms and boundary conditions, and comparing with the pre-selected solution.</p>
-<p>The advantage of MMS is that exact solutions can be constructed in principle for any PDE, including nonlinear PDEs. The selected solution does not need to be physically realistic, since the goal of NCV is to confirm the equations are being solved correctly. One disadvantage of MMS is that the force terms or boundary conditions may not be compatible with the interface provided by a solver, for example a solver may assume a boundary condition value is constant or zero which would not allow for an MMS-derived boundary condition that a function of $\mathbf{x}$. A second disadvantage of MMS is that for complex PDEs, the number of terms in the computed force or boundary conditions can be large or even enormous (for an example see <a href="#ref-Aycock2020">Aycock, 2024</a>), even for a simple pre-selected solution. For such cases, it may be advisable or necessary to use a software symbolic computation package to calculate the MMS source and boundary conditions terms.</p>
+<p>The advantage of MMS is that exact solutions can be constructed in principle for any PDE, including nonlinear PDEs. The selected solution does not need to be physically realistic, since the goal of NCV is to confirm the equations are being solved correctly. One disadvantage of MMS is that the force terms or boundary conditions may not be compatible with the interface provided by a solver, for example a solver may assume a boundary condition value is constant or zero which would not allow for an MMS-derived boundary condition that a function of $\mathbf{x}$. A second disadvantage of MMS is that for complex PDEs, the number of terms in the computed force or boundary conditions can be large or even enormous (for an example see <a href="#ref-Aycock2020"></a>Aycock, 2024), even for a simple pre-selected solution. For such cases, it may be advisable or necessary to use a software symbolic computation package to calculate the MMS source and boundary conditions terms.</p>
 <h1 id="2.-Using-the-MMS">2. Using the MMS<a class="anchor-link" href="#2.-Using-the-MMS">¶</a></h1><p>Below a workflow for MMS is provided. A prelimary step is to decide if new NCV is needed. This will depend on what NCV results are already available for the solver of interest. For example, for an estabished software package, relevant NCV results may already be publicly available. On the other hand, for a completely new software implementation of a computational model, implemented in medical device software, no previous public NCV results may be available.</p>
-<p>Also, a decision is required on the appropriate level of rigor in the NCV activities. As outlined in ASME V&amp;V40 2018, this is dependent on the risk associated with using the model for the specified context of use. The below workflow corresponds to the highest level of rigor for the NCV credibility factor in ASME V&amp;V40, that is, "<em>Discretization error was quantified by comparison to an exact solution, and a grid convergence study demonstrated that the numerical solution asymptotically approached the exact solution as the discretization was refined, and the observed order of accuracy was quantified and compared to the theoretical order of accuracy</em>" (<a href="#ref-VV40">ASME, 2018</a>)</p>
+<p>Also, a decision is required on the appropriate level of rigor in the NCV activities. As outlined in ASME V&amp;V40 2018, this is dependent on the risk associated with using the model for the specified context of use. The below workflow corresponds to the highest level of rigor for the NCV credibility factor in ASME V&amp;V40, that is, "<em>Discretization error was quantified by comparison to an exact solution, and a grid convergence study demonstrated that the numerical solution asymptotically approached the exact solution as the discretization was refined, and the observed order of accuracy was quantified and compared to the theoretical order of accuracy</em>" (<a href="#ref-VV40"></a>ASME, 2018)</p>
 <h2 id="2.1.-Typical-MMS-workflow">2.1. Typical MMS workflow<a class="anchor-link" href="#2.1.-Typical-MMS-workflow">¶</a></h2><p>The following is an example workflow for performing MMS for a given numerical solver. The sub-bullets consider cases that arise.</p>
 <ol>
 <li>If the solver accepts different geometries as input, choose a domain. This will typically be a regular geometry, e.g., unit cube.</li>
 <li>Choose an analytical solution for a field of interest in the governing equation. The solution does not need to be physically meaningful, but in general it needs be continuous and continuously differentiable, and ideally exercises all derivatives in the PDE including cross-derivatives.</li>
 <li>Generate an analytical source term (i.e., a fictitious body force) and boundary conditions to satisfy the governing equations with the analytical solution<ul>
 <li>In some cases, it will be possible to do this by hand, i.e., on paper</li>
-<li>For more complex equations, however, it may be advisable to perform this calculation using a symbolic computation package, for example using the <code>simpy</code> package; see <a href="#ref-Aycock2020">Aycock, 2020</a> for an example.</li>
+<li>For more complex equations, however, it may be advisable to perform this calculation using a symbolic computation package, for example using the <code>simpy</code> package; see <a href="#ref-Aycock2020"></a>Aycock, 2020 for an example.</li>
 </ul>
 </li>
 <li>Implement the source term and the appropriate boundary conditions<ul>
@@ -7574,7 +7574,7 @@ NCV of a code solving Laplace's equation can be be performed by computing the so
 </ul>
 </li>
 <li>Perform grid &amp; time-step convergence studies by solving the governing equations with the specified source terms and boundary conditions using a range of grid resolutions $h$ and (if applicable) timesteps $dt$, and compute the error in the chosen error norm(s)<ul>
-<li>For static problems: ideally using at least three spatial resolutions and with a grid refinement ratio of around 2. If this is not possible, it is recommended in <a href="#ref-Oberkampf2025">Oberkampf &amp; Roy, 2025</a> the refinement ratio be at least 1.3.</li>
+<li>For static problems: ideally using at least three spatial resolutions and with a grid refinement ratio of around 2. If this is not possible, it is recommended in <a href="#ref-Oberkampf2025"></a>Oberkampf &amp; Roy, 2025 the refinement ratio be at least 1.3.</li>
 <li>For dynamic problems: using any relevant conditions on $dt$ and $h$ such as the Courant-Friedrich-Levy (CFL) condition.</li>
 </ul>
 </li>
@@ -7596,49 +7596,49 @@ NCV of a code solving Laplace's equation can be be performed by computing the so
 <tr>
 <td style="text-align:left">Solid mechanics</td>
 <td style="text-align:left">Linear elasticity, nonlinear with Neo-Hookean, Hencky law</td>
-<td style="text-align:left"><a href="#ref-Aycock2020">Aycock, 2020</a></td>
+<td style="text-align:left"><a href="#ref-Aycock2020"></a>Aycock, 2020</td>
 <td style="text-align:left">MMS</td>
 </tr>
 <tr>
 <td style="text-align:left">Solid mechanics</td>
 <td style="text-align:left">Pseudoelasticity or superelasticity</td>
-<td style="text-align:left"><a href="#ref-Aycock2024">Aycock, 2024</a></td>
+<td style="text-align:left"><a href="#ref-Aycock2024"></a>Aycock, 2024</td>
 <td style="text-align:left">Analytic solutions</td>
 </tr>
 <tr>
 <td style="text-align:left">Fluid Dynamics</td>
 <td style="text-align:left">Unsteady Tri-Periodic Vortex</td>
-<td style="text-align:left"><a href="#ref-Antuono2020">Antuono, 2020</a></td>
+<td style="text-align:left"><a href="#ref-Antuono2020"></a>Antuono, 2020</td>
 <td style="text-align:left">Analytic solutions</td>
 </tr>
 <tr>
 <td style="text-align:left">Fluid Dynamics</td>
 <td style="text-align:left">Circular Poiseuille Flow</td>
-<td style="text-align:left"><a href="#ref-Horner2021">Horner, 2021</a></td>
+<td style="text-align:left"><a href="#ref-Horner2021"></a>Horner, 2021</td>
 <td style="text-align:left">Method of Rotated Solutions</td>
 </tr>
 <tr>
 <td style="text-align:left">Fluid-Structure Interaction (FSI)</td>
 <td style="text-align:left">Steady FSI and 2D Unsteady FSI</td>
-<td style="text-align:left"><a href="#ref-Etienne2012">Étienne, 2012</a></td>
+<td style="text-align:left"><a href="#ref-Etienne2012"></a>Étienne, 2012</td>
 <td style="text-align:left">MMS</td>
 </tr>
 <tr>
 <td style="text-align:left">Fluid Dynamics and Blood Damage</td>
 <td style="text-align:left">Planar Couette Flow and Circular Poiseuille Flow</td>
-<td style="text-align:left"><a href="#ref-Craven2019">Craven, 2019</a> (Sections 4.1.1 and 4.2.1)</td>
+<td style="text-align:left"><a href="#ref-Craven2019"></a>Craven, 2019 (Sections 4.1.1 and 4.2.1)</td>
 <td style="text-align:left">Analytic Solutions</td>
 </tr>
 <tr>
 <td style="text-align:left">Electrophysiology</td>
 <td style="text-align:left">Monodomain, bidomain (with/without perfusing bath)</td>
-<td style="text-align:left"><a href="#ref-Pathmanathan2014">Pathmanathan, 2014</a> (Section 2.2)</td>
+<td style="text-align:left"><a href="#ref-Pathmanathan2014"></a>Pathmanathan, 2014 (Section 2.2)</td>
 <td style="text-align:left">MMS</td>
 </tr>
 <tr>
 <td style="text-align:left">Fluid Dynamics</td>
 <td style="text-align:left">Various</td>
-<td style="text-align:left"><a href="#ref-Masa">Malaya et al., 2013</a></td>
+<td style="text-align:left"><a href="#ref-Masa"></a>Malaya et al., 2013</td>
 <td style="text-align:left">MMS (MMS solutions stored in a software library)</td>
 </tr>
 </tbody>
@@ -7649,7 +7649,7 @@ NCV of a code solving Laplace's equation can be be performed by computing the so
 \| u \|_{L_2}^2 &amp;= \int_{\Omega}u^2\,\mathrm{d}V  \\ %\intgl{\Omega}{u^2}{V} 
 \| u \|_{H^1}^2 &amp;= \int_{\Omega}u^2+|\boldsymbol{\nabla} u|^2\,\mathrm{d}V
 \end{align}
-Then, assuming certain conditions on the $\Omega$, $u_{\textrm{true}}$ and the finite element mesh (<a href="#ref-Ciarlet2002">Ciarlet, 2002</a>)
+Then, assuming certain conditions on the $\Omega$, $u_{\textrm{true}}$ and the finite element mesh (<a href="#ref-Ciarlet2002"></a>Ciarlet, 2002)
 \begin{align}
 e_{H^1} = \|u_h - u_{\textrm{true}}\|_{H^1} = \mathcal{O(h^p)} \qquad&amp; \textrm{i.e., } \|u_h - u_{\textrm{true}}\|_{H^1} \le c_1 h^p \\
 e_{L_2} = \|u_h - u_{\textrm{true}}\|_{L_2} = \mathcal{O(h^{p+1})} \qquad &amp; \textrm{i.e., } \|u_h - u_{\textrm{true}}\|_{L_2} \le c_2 h^{p+1} 
@@ -7660,11 +7660,11 @@ for some $c_1&gt;0$, $c_2&gt;0$, and for sufficiently small $h$. For example, fo
 \begin{equation}
 e_{h,L_2} = h^{d/2}\|\mathbf{u}_h-\mathbf{u}_{\textrm{true}}\|_2 = h^{d/2}\left(\sum_{i} (u_{h,i} - u_{\textrm{true}}(\mathbf{x}_i))^2 \right)^{1/2}
 \end{equation}
-where $\|.\|_2$ is the standard vector $l_2$ norm, and $\mathbf{u}_h$ and $\mathbf{u}_\textrm{true}$ are vectors of nodal values of $u_h$ and $u_{\textrm{true}}$. $d$ is the spatial dimension and the scaling $h^{d/2}$ ensures $\mathcal{O(1)}$ functions have $\mathcal{O(1)}$ norms as $h\rightarrow 0$ (i.e., counteracts the sum over increasingly many values as $h$ decreases). This error metric is easy to compute, and approximates the $L_2$ error. However, it is important to note that rate of convergence rate of $e_{h,L_2}$ may not match the rate of convergence rate of $e_{L_2}$. In some cases, the theoretical order of convergence of the $e_{h,L_2}$ error may not be known. In others, such as some 1D problems, it may have been shown that the convergence of the $e_{h,L_2}$ error is faster than the convergence of the $e_{L_2}$ error (essentially, the solution converges faster at the nodes than inside the elements; so-called super-convergence (<a href="#ref-Schatz1996">Schatz et al., 1996</a>)). For example, in the end-to-end worked example below, convergence in the discrete $L_2$ error will be $\mathcal{O(h^{4})}$ despite only using linear elements. Therefore, if the discrete $L_2$, or other discrete norm, is used as a surrogate to the integral $L_2$ norm, care is needed regarding claims of matching the theoretical order of convergence.</p>
+where $\|.\|_2$ is the standard vector $l_2$ norm, and $\mathbf{u}_h$ and $\mathbf{u}_\textrm{true}$ are vectors of nodal values of $u_h$ and $u_{\textrm{true}}$. $d$ is the spatial dimension and the scaling $h^{d/2}$ ensures $\mathcal{O(1)}$ functions have $\mathcal{O(1)}$ norms as $h\rightarrow 0$ (i.e., counteracts the sum over increasingly many values as $h$ decreases). This error metric is easy to compute, and approximates the $L_2$ error. However, it is important to note that rate of convergence rate of $e_{h,L_2}$ may not match the rate of convergence rate of $e_{L_2}$. In some cases, the theoretical order of convergence of the $e_{h,L_2}$ error may not be known. In others, such as some 1D problems, it may have been shown that the convergence of the $e_{h,L_2}$ error is faster than the convergence of the $e_{L_2}$ error (essentially, the solution converges faster at the nodes than inside the elements; so-called super-convergence (<a href="#ref-Schatz1996"></a>Schatz et al., 1996)). For example, in the end-to-end worked example below, convergence in the discrete $L_2$ error will be $\mathcal{O(h^{4})}$ despite only using linear elements. Therefore, if the discrete $L_2$, or other discrete norm, is used as a surrogate to the integral $L_2$ norm, care is needed regarding claims of matching the theoretical order of convergence.</p>
 <h3 id="2.3.2-Error-norms-for-other-methods">2.3.2 Error norms for other methods<a class="anchor-link" href="#2.3.2-Error-norms-for-other-methods">¶</a></h3><p>Other commonly used methods of have different appropriate error norms.</p>
 <ul>
 <li>For the finite difference method, the solution is defined at a set of grid-points, and appropriate norms include the discrete $L_2$ norm as defined above or discrete $L_\infty$ norm $e_{h,L_\infty} = \textrm{max}\left(|u_{h,i} - u_{\textrm{true}}(\mathbf{x}_i)|\right)$. Typically, the error in these norms will be $\mathcal{O(h^p)}$ for some $p$, where $h$ is the spatial stepsize. For example, the central differences scheme for solving second order ODEs typically leads to $\mathcal{O(h^2)}$ convergence in the discrete $L_2$ or $L_\infty$ norms.</li>
-<li>For the finite volume method, rigorous theoretical error estimates - typically expressed in discrete analogues of $L_2$ or $H^1$ norms - are well established, and yield convergence rates comparable to those of the finite element method (<a href="#Eymard2000">Eymard, 2000</a>).</li>
+<li>For the finite volume method, rigorous theoretical error estimates - typically expressed in discrete analogues of $L_2$ or $H^1$ norms - are well established, and yield convergence rates comparable to those of the finite element method (<a href="#Eymard2000"></a>Eymard, 2000).</li>
 <li>A new method for solving differential equations using machine learning methods is physics-informed neural networks (PINNs). Unlike the traditional methods, theoretical convergence rates may not be available for PINNs. Code verification of PINN solvers are discussed in a separate Jupyter notebook in this toolbox.</li>
 </ul>
 <h2 id="2.4.-Reasons-for-lower-observed-of-convergence">2.4. Reasons for lower observed of convergence<a class="anchor-link" href="#2.4.-Reasons-for-lower-observed-of-convergence">¶</a></h2><p>If the observed order of convergence is less than the theoretical rate across the range of stepsizes, this could be due to, among others possibilities:</p>
